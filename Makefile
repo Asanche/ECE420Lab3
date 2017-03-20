@@ -7,4 +7,4 @@ stester:
 	gcc devkit/serialtester.c devkit/Lab3IO.c -o serialtester -lm
 
 ptester:
-	gcc submit/paralleltester.c devkit/Lab3IO.c -o paralleltester -lm
+	gcc submit/parallel.c devkit/Lab3IO.c -o main -lm
