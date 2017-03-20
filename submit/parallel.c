@@ -15,18 +15,24 @@ Compiling:
 
 int main(int argc, char* argv[])
 {
-    printf("Am i even running?");
+    printf("Am i even running?\n");
 	int i, j, k, size;
 	double** Au;
 	double* X;
 	double temp, error, Xnorm;
 	int* index;
+    int thread_count = 1;
+
+    if(argc > 1){
+        printf("%s\n", argv[1]);
+        thread_count = atoi(argv[1]);
+    }
 
 	Lab3LoadInput(&Au, &size);
 
 	/*Calculate the solution by parallel code*/
     double start; double end;
-    GET_TIME(start);
+    
 
 	X = CreateVec(size);
     index = malloc(size * sizeof(int));
@@ -34,19 +40,22 @@ int main(int argc, char* argv[])
         index[i] = i;
     }
 
-    printf("Damn hoe, here we go again.");
+    printf("Damn hoe, here we go again.\n");
 
+    GET_TIME(start);
     if (size == 1) {
         X[0] = Au[0][1] / Au[0][0];
     } else {
         /*Gaussian elimination*/
-        # pragma omp parallel shared(k, Au, index) pivate (k, i, j, temp) default(none)
-        {
+         # pragma omp parallel schedule(static, 1) num_threads(thread_count) private(temp, k) shared(Au, Index, size)
+         {
+            # pragma omp for
             for (k = 0; k < size - 1; ++k){
                 /*Pivoting*/
-                printf("Pivot that shit, dawg.");
+                printf("Pivot that shit, dawg.\n");
                 temp = 0;
-        #       pragma omp for 
+                
+               
                 for (i = k, j = 0; i < size; ++i) {
                     printf("pragma 1");
                     if (temp < Au[index[i]][k] * Au[index[i]][k]){
@@ -56,46 +65,36 @@ int main(int argc, char* argv[])
                 }
 
                 if (j != k) /*swap*/ {
-                    printf("Swap that shit, dawg");
+                    printf("Swap that shit, dawg.\n");
                     i = index[j];
                     index[j] = index[k];
                     index[k] = i;
                 }
                 
                 /*calculating*/
-        #       pragma omp for 
-                for (i = k + 1; i < size; ++i) {
-                    printf("pragma 2");                    
+                for (i = k + 1; i < size; ++i) {                  
                     temp = Au[index[i]][k] / Au[index[k]][k];
                     for (j = k; j < size + 1; ++j) {
                         Au[index[i]][j] -= Au[index[k]][j] * temp;
                     }
                 }       
             }
-        }
+         }
         
         /*Jordan elimination*/
-        # pragma omp parallel shared(Au, index, size, X) private(temp, k) default(none)
-        {
-        #   pragma omp for
             for (k = size - 1; k > 0; --k) {
-                printf("pragma 3");
                 for (i = k - 1; i >= 0; --i ) {
                     temp = Au[index[i]][k] / Au[index[k]][k];
                     Au[index[i]][k] -= temp * Au[index[k]][k];
                     Au[index[i]][size] -= temp * Au[index[k]][size];
                 } 
             }
-        
 
-        /*solution*/
-        #   pragma omp for 
+            /*solution*/
             for (k=0; k< size; ++k) {
-                printf("pragma 4");
                 X[k] = Au[index[k]][size] / Au[index[k]][k];
             }
         }
-    }
     GET_TIME(end);
     Lab3SaveOutput(X , size, end - start);
 }
