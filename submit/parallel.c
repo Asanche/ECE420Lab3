@@ -8,6 +8,7 @@ Compiling:
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <omp.h>
 #include "../devKit/Lab3IO.h"
 #include "../devKit/timer.h"
 
@@ -24,10 +25,11 @@ int main(int argc, char* argv[])
     int thread_count = 1;
 
     if(argc > 1){
-        printf("%s\n", argv[1]);
+        printf("Thread count received: %s\n", argv[1]);
         thread_count = atoi(argv[1]);
     }
 
+    printf("Thread count set to: %d\n", thread_count);
 	Lab3LoadInput(&Au, &size);
 
 	/*Calculate the solution by parallel code*/
@@ -47,17 +49,16 @@ int main(int argc, char* argv[])
         X[0] = Au[0][1] / Au[0][0];
     } else {
         /*Gaussian elimination*/
-         # pragma omp parallel schedule(static) num_threads(thread_count) private(temp, k) shared(Au, Index, size)
+         # pragma omp parallel schedule(dynamic) num_threads(thread_count) private(temp, k) shared(Au, Index, size)
          {
+            printf("Threads in the team: %d\n", omp_get_num_threads());
             # pragma omp for
             for (k = 0; k < size - 1; ++k){
                 /*Pivoting*/
-                printf("Pivot that shit, dawg.\n");
                 temp = 0;
                 
                
                 for (i = k, j = 0; i < size; ++i) {
-                    printf("pragma 1");
                     if (temp < Au[index[i]][k] * Au[index[i]][k]){
                         temp = Au[index[i]][k] * Au[index[i]][k];
                         j = i;
@@ -65,7 +66,6 @@ int main(int argc, char* argv[])
                 }
 
                 if (j != k) /*swap*/ {
-                    printf("Swap that shit, dawg.\n");
                     i = index[j];
                     index[j] = index[k];
                     index[k] = i;
