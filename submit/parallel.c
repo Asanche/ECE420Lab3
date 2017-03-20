@@ -9,7 +9,7 @@ Compiling:
 #include <stdlib.h>
 #include <math.h>
 #include "../devKit/Lab3IO.h"
-#include "../devKit/Timer.h"
+#include "../devKit/timer.h"
 
 #define TOL 0.0005
 
