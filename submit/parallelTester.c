@@ -1,6 +1,7 @@
 //Remember to change the exit value of the wrong case to -1 !!!
 /*
-Test the result stored in the "data_output" by a serial version of calculation
+Test the result stored in the "data_output" by a parallel version of calculation
+Adapted from serialTester.c in the devKit folder
 
 -----
 Compiling:
@@ -10,7 +11,7 @@ Compiling:
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "Lab3IO.h"
+#include "../devkit/Lab3IO.h"
 
 #define TOL 0.0005
 
@@ -44,26 +45,31 @@ int main(int argc, char* argv[])
         X[0] = Au[0][1] / Au[0][0];
     else{
         /*Gaussian elimination*/
-        for (k = 0; k < size - 1; ++k){
-            /*Pivoting*/
-            temp = 0;
-            for (i = k, j = 0; i < size; ++i)
-                if (temp < Au[index[i]][k] * Au[index[i]][k]){
-                    temp = Au[index[i]][k] * Au[index[i]][k];
-                    j = i;
+        # pragma omp parallel
+        {
+        #   pragma omp for 
+            for (k = 0; k < size - 1; ++k){
+                /*Pivoting*/
+                temp = 0;
+                for (i = k, j = 0; i < size; ++i)
+                    if (temp < Au[index[i]][k] * Au[index[i]][k]){
+                        temp = Au[index[i]][k] * Au[index[i]][k];
+                        j = i;
+                    }
+                if (j != k)/*swap*/{
+                    i = index[j];
+                    index[j] = index[k];
+                    index[k] = i;
                 }
-            if (j != k)/*swap*/{
-                i = index[j];
-                index[j] = index[k];
-                index[k] = i;
+                /*calculating*/
+                for (i = k + 1; i < size; ++i){
+                    temp = Au[index[i]][k] / Au[index[k]][k];
+                    for (j = k; j < size + 1; ++j)
+                        Au[index[i]][j] -= Au[index[k]][j] * temp;
+                }       
             }
-            /*calculating*/
-            for (i = k + 1; i < size; ++i){
-                temp = Au[index[i]][k] / Au[index[k]][k];
-                for (j = k; j < size + 1; ++j)
-                    Au[index[i]][j] -= Au[index[k]][j] * temp;
-            }       
         }
+        
         /*Jordan elimination*/
         for (k = size - 1; k > 0; --k){
             for (i = k - 1; i >= 0; --i ){
