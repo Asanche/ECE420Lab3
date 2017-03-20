@@ -49,16 +49,15 @@ int main(int argc, char* argv[])
         X[0] = Au[0][1] / Au[0][0];
     } else {
         /*Gaussian elimination*/
-         # pragma omp parallel schedule(dynamic) num_threads(thread_count) private(temp, k) shared(Au, Index, size)
-         {
+         
             printf("Threads in the team: %d\n", omp_get_num_threads());
-            # pragma omp for
+            
             for (k = 0; k < size - 1; ++k){
                 /*Pivoting*/
                 temp = 0;
+                j = 0;
                 
-               
-                for (i = k, j = 0; i < size; ++i) {
+                for (i = k; i < size; ++i) {
                     if (temp < Au[index[i]][k] * Au[index[i]][k]){
                         temp = Au[index[i]][k] * Au[index[i]][k];
                         j = i;
@@ -72,6 +71,7 @@ int main(int argc, char* argv[])
                 }
                 
                 /*calculating*/
+                
                 for (i = k + 1; i < size; ++i) {                  
                     temp = Au[index[i]][k] / Au[index[k]][k];
                     for (j = k; j < size + 1; ++j) {
@@ -79,22 +79,22 @@ int main(int argc, char* argv[])
                     }
                 }       
             }
-         }
         
         /*Jordan elimination*/
-            for (k = size - 1; k > 0; --k) {
-                for (i = k - 1; i >= 0; --i ) {
-                    temp = Au[index[i]][k] / Au[index[k]][k];
-                    Au[index[i]][k] -= temp * Au[index[k]][k];
-                    Au[index[i]][size] -= temp * Au[index[k]][size];
-                } 
-            }
-
-            /*solution*/
-            for (k=0; k< size; ++k) {
-                X[k] = Au[index[k]][size] / Au[index[k]][k];
-            }
+        for (k = size - 1; k > 0; --k) {
+            for (i = k - 1; i >= 0; --i ) {
+                temp = Au[index[i]][k] / Au[index[k]][k];
+                Au[index[i]][k] -= temp * Au[index[k]][k];
+                Au[index[i]][size] -= temp * Au[index[k]][size];
+            } 
         }
+
+        /*solution*/
+        # pragma omp parallel for num_threads(thread_count) shared(Au, index, size, X)
+        for (k=0; k< size; ++k) {
+            X[k] = Au[index[k]][size] / Au[index[k]][k];
+        }
+    }
     GET_TIME(end);
     Lab3SaveOutput(X , size, end - start);
 }
