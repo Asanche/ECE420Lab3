@@ -8,7 +8,7 @@ Compiling:
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "../devkit/Lab3IO.h"
+#include "../devKit/Lab3IO.h"
 #include "../devKit/Timer.h"
 
 #define TOL 0.0005
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
         X[0] = Au[0][1] / Au[0][0];
     } else {
         /*Gaussian elimination*/
-         # pragma omp parallel schedule(static, 1) num_threads(thread_count) private(temp, k) shared(Au, Index, size)
+         # pragma omp parallel schedule(static) num_threads(thread_count) private(temp, k) shared(Au, Index, size)
          {
             # pragma omp for
             for (k = 0; k < size - 1; ++k){
