@@ -56,6 +56,7 @@ int main(int argc, char* argv[])
             double yeehaw = 0;
             int j = 0;
             int i;
+            # pragma omp parallel for num_threads(thread_count)
             for (i = k; i < size; ++i) {
                 if (yeehaw < Au[index[i]][k] * Au[index[i]][k]){
                     yeehaw = Au[index[i]][k] * Au[index[i]][k];
@@ -80,16 +81,17 @@ int main(int argc, char* argv[])
         }
         
         /*Jordan elimination*/
-        # pragma omp parallel for num_threads(thread_count)
+        
         for (int k = size - 1; k > 0; --k) {
             for (int i = k - 1; i >= 0; --i ) {
                 double temp = Au[index[i]][k] / Au[index[k]][k];
                 Au[index[i]][k] -= temp * Au[index[k]][k];
                 Au[index[i]][size] -= temp * Au[index[k]][size];
-            } 
+            }
         }
         
         /*solution*/
+        # pragma omp parallel for num_threads(thread_count)
         for (int k = 0; k < size; ++k) {
             X[k] = Au[index[k]][size] / Au[index[k]][k];
         }
