@@ -50,14 +50,12 @@ int main(int argc, char* argv[])
         X[0] = Au[0][1] / Au[0][0];
     } else {
         /*Gaussian elimination*/
-        
+        printf("What's my name?\n");
         for (int k = 0; k < size - 1; ++k){
-            printf("%d\n", k);
             /*Pivoting*/
             double yeehaw = 0;
             int j = 0;
             int i;
-            # pragma omp parallel for num_threads(thread_count)
             for (i = k; i < size; ++i) {
                 if (yeehaw < Au[index[i]][k] * Au[index[i]][k]){
                     yeehaw = Au[index[i]][k] * Au[index[i]][k];
@@ -66,28 +64,23 @@ int main(int argc, char* argv[])
             }
 
             if (j != k) /*swap*/ {
-                #pragma opm critical
-                {
-                    i = index[j];
-                    index[j] = index[k];
-                    index[k] = i;
-                }
+                i = index[j];
+                index[j] = index[k];
+                index[k] = i;
             }
             
             /*calculating*/
-            
+            printf("%d\n", k);
             for (int i = k + 1; i < size; ++i) {
                 double temp = Au[index[i]][k] / Au[index[k]][k];
                 for (j = k; j < size + 1; ++j) {
-                    #pragma opm critical
-                    {
                         Au[index[i]][j] -= Au[index[k]][j] * temp;
-                    }
                 }
             }
         }
         
         /*Jordan elimination*/
+        # pragma omp parallel for num_threads(thread_count)
         for (int k = size - 1; k > 0; --k) {
             for (int i = k - 1; i >= 0; --i ) {
                 double temp = Au[index[i]][k] / Au[index[k]][k];
