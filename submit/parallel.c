@@ -46,52 +46,59 @@ int main(int argc, char* argv[])
 
     GET_TIME(start);
     
-    if (size == 1) {
-        X[0] = Au[0][1] / Au[0][0];
-    } else {
-        /*Gaussian elimination*/
-        printf("What's my name?\n");
-        for (int k = 0; k < size - 1; ++k){
-            /*Pivoting*/
-            double yeehaw = 0;
-            int j = 0;
-            int i;
-            for (i = k; i < size; ++i) {
-                if (yeehaw < Au[index[i]][k] * Au[index[i]][k]){
-                    yeehaw = Au[index[i]][k] * Au[index[i]][k];
-                    j = i;
+    # pragma omp parallel num_threads(thread_count) shared(Au)
+    { // Initialize using the desired quantity of threads
+        if (size == 1) {
+            X[0] = Au[0][1] / Au[0][0];
+        } else {
+            /*Gaussian elimination*/
+            for (int k = 0; k < size - 1; ++k){
+                /*Pivoting*/
+                double yeehaw = 0;
+                int j = 0;
+                int i;
+                for (i = k; i < size; ++i) {
+                    if (yeehaw < Au[index[i]][k] * Au[index[i]][k]){
+                        yeehaw = Au[index[i]][k] * Au[index[i]][k];
+                        j = i;
+                    }
                 }
-            }
 
-            if (j != k) /*swap*/ {
-                i = index[j];
-                index[j] = index[k];
-                index[k] = i;
+                #pragma omp single // We do not want to swap <thread_count> times
+                {
+                    if (j != k) /*swap*/ {
+                        i = index[j];
+                        index[j] = index[k];
+                        index[k] = i;
+                    }
+                }
+                
+                /*calculating*/
+                printf("%d\n", k);
+                #pragma omp for // We can parallelize this loop
+                for (int i = k + 1; i < size; ++i) {
+                    double temp = Au[index[i]][k] / Au[index[k]][k];
+                    for (j = k; j < size + 1; ++j) {
+                            Au[index[i]][j] -= Au[index[k]][j] * temp;
+                    }
+                }
             }
             
-            /*calculating*/
-            printf("%d\n", k);
-            for (int i = k + 1; i < size; ++i) {
-                double temp = Au[index[i]][k] / Au[index[k]][k];
-                for (j = k; j < size + 1; ++j) {
-                        Au[index[i]][j] -= Au[index[k]][j] * temp;
-                }
+            /*Jordan elimination*/
+            for (int k = size - 1; k > 0; --k) { // We can't prallelize this loop. Order of k operations on Au matters'
+                #pragma omp for
+                for (int i = k - 1; i >= 0; --i ) {
+                    double temp = Au[index[i]][k] / Au[index[k]][k];
+                    Au[index[i]][k] -= temp * Au[index[k]][k];
+                    Au[index[i]][size] -= temp * Au[index[k]][size];
+                } 
             }
-        }
-        
-        /*Jordan elimination*/
-        # pragma omp parallel for num_threads(thread_count)
-        for (int k = size - 1; k > 0; --k) {
-            for (int i = k - 1; i >= 0; --i ) {
-                double temp = Au[index[i]][k] / Au[index[k]][k];
-                Au[index[i]][k] -= temp * Au[index[k]][k];
-                Au[index[i]][size] -= temp * Au[index[k]][size];
-            } 
-        }
-        
-        /*solution*/
-        for (int k = 0; k < size; ++k) {
-            X[k] = Au[index[k]][size] / Au[index[k]][k];
+            
+            /*solution*/
+            #pragma omp for // Here we can just use regular for because we are just assigning to individual elements
+            for (int k = 0; k < size; ++k) {
+                X[k] = Au[index[k]][size] / Au[index[k]][k];
+            }
         }
     }
     GET_TIME(end);
