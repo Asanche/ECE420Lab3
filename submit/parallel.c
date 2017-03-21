@@ -17,10 +17,10 @@ Compiling:
 int main(int argc, char* argv[])
 {
     printf("Am i even running?\n");
-	int i, j, k, size;
+	int size;
 	double** Au;
 	double* X;
-	double temp, error, Xnorm;
+	double error, Xnorm;
 	int* index;
     int thread_count = 1;
 
@@ -38,60 +38,66 @@ int main(int argc, char* argv[])
 
 	X = CreateVec(size);
     index = malloc(size * sizeof(int));
-    for (i = 0; i < size; ++i){
+    for (int i = 0; i < size; ++i){
         index[i] = i;
     }
 
     printf("Damn hoe, here we go again.\n");
 
     GET_TIME(start);
+    
     if (size == 1) {
         X[0] = Au[0][1] / Au[0][0];
     } else {
         /*Gaussian elimination*/
-         
-            printf("Threads in the team: %d\n", omp_get_num_threads());
-            
-            for (k = 0; k < size - 1; ++k){
-                /*Pivoting*/
-                temp = 0;
-                j = 0;
-                
-                for (i = k; i < size; ++i) {
-                    if (temp < Au[index[i]][k] * Au[index[i]][k]){
-                        temp = Au[index[i]][k] * Au[index[i]][k];
-                        j = i;
-                    }
+        
+        for (int k = 0; k < size - 1; ++k){
+            printf("%d\n", k);
+            /*Pivoting*/
+            double yeehaw = 0;
+            int j = 0;
+            int i;
+            # pragma omp parallel for num_threads(thread_count)
+            for (i = k; i < size; ++i) {
+                if (yeehaw < Au[index[i]][k] * Au[index[i]][k]){
+                    yeehaw = Au[index[i]][k] * Au[index[i]][k];
+                    j = i;
                 }
+            }
 
-                if (j != k) /*swap*/ {
+            if (j != k) /*swap*/ {
+                #pragma opm critical
+                {
                     i = index[j];
                     index[j] = index[k];
                     index[k] = i;
                 }
-                
-                /*calculating*/
-                
-                for (i = k + 1; i < size; ++i) {                  
-                    temp = Au[index[i]][k] / Au[index[k]][k];
-                    for (j = k; j < size + 1; ++j) {
+            }
+            
+            /*calculating*/
+            
+            for (int i = k + 1; i < size; ++i) {
+                double temp = Au[index[i]][k] / Au[index[k]][k];
+                for (j = k; j < size + 1; ++j) {
+                    #pragma opm critical
+                    {
                         Au[index[i]][j] -= Au[index[k]][j] * temp;
                     }
-                }       
+                }
             }
+        }
         
         /*Jordan elimination*/
-        for (k = size - 1; k > 0; --k) {
-            for (i = k - 1; i >= 0; --i ) {
-                temp = Au[index[i]][k] / Au[index[k]][k];
+        for (int k = size - 1; k > 0; --k) {
+            for (int i = k - 1; i >= 0; --i ) {
+                double temp = Au[index[i]][k] / Au[index[k]][k];
                 Au[index[i]][k] -= temp * Au[index[k]][k];
                 Au[index[i]][size] -= temp * Au[index[k]][size];
             } 
         }
-
+        
         /*solution*/
-        # pragma omp parallel for num_threads(thread_count) shared(Au, index, size, X)
-        for (k=0; k< size; ++k) {
+        for (int k = 0; k < size; ++k) {
             X[k] = Au[index[k]][size] / Au[index[k]][k];
         }
     }

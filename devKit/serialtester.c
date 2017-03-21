@@ -16,7 +16,7 @@ Compiling:
 
 int main(int argc, char* argv[])
 {
-    printf("Running Serialtester.");
+    printf("Running Serialtester.\n");
 	int i, j, k, size;
 	double** Au;
 	double* X;
