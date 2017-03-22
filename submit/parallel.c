@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
                 
                 /*calculating*/
                 printf("%d\n", k);
-                #pragma omp for // We can parallelize this loop
+                #pragma omp for schedule(auto)// We can parallelize this loop
                 for (int i = k + 1; i < size; ++i) {
                     double temp = Au[index[i]][k] / Au[index[k]][k];
                     for (j = k; j < size + 1; ++j) {
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
             
             /*Jordan elimination*/
             for (int k = size - 1; k > 0; --k) { // We can't prallelize this loop. Order of k operations on Au matters'
-                #pragma omp for
+                #pragma omp for schedule(auto)
                 for (int i = k - 1; i >= 0; --i ) {
                     double temp = Au[index[i]][k] / Au[index[k]][k];
                     Au[index[i]][k] -= temp * Au[index[k]][k];
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
             }
             
             /*solution*/
-            #pragma omp for // Here we can just use regular for because we are just assigning to individual elements
+            #pragma omp for schedule(auto)// Here we can just use regular for because we are just assigning to individual elements
             for (int k = 0; k < size; ++k) {
                 X[k] = Au[index[k]][size] / Au[index[k]][k];
             }
