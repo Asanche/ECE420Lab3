@@ -62,7 +62,7 @@ cd tmp/
 ## calculation
 
 # for different sizes
-echo "Evaluating the results..." > /afs/ualberta.ca/home/s/o/somos/ECE420/ECE420Lab3/checkOutput
+echo "Schedule -> Default" >> /afs/ualberta.ca/home/s/o/somos/ECE420/ECE420Lab3/checkOutput
     # real calculation
     #chmod 755 tmp/main
     for SAMPLE in ${Sizes[@]}; do
