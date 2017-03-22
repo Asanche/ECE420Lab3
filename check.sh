@@ -62,7 +62,7 @@ cd tmp/
 ## calculation
 
 # for different sizes
-echo "Evaluating the results..."
+echo "Evaluating the results..." > /afs/ualberta.ca/home/s/o/somos/ECE420/ECE420Lab3/checkOutput
     # real calculation
     #chmod 755 tmp/main
     for SAMPLE in ${Sizes[@]}; do
@@ -70,7 +70,7 @@ echo "Evaluating the results..."
     	./$mxgenEX -s $SAMPLE
         echo "SAMPLE $SAMPLE"
         for CORE in ${Cores[@]}; do
-            echo "$CORE threads" >> ./checkOutput
+            echo "$CORE threads" >> /afs/ualberta.ca/home/s/o/somos/ECE420/ECE420Lab3/checkOutput
             #BestTime=10000000;
             RecordTime=10000000;
             ATTEMPT=0
@@ -99,7 +99,7 @@ echo "Evaluating the results..."
                 fi
             done
             # record the result
-		echo "Time of calculation: $RecordTime" >> ./checkOutput
+		echo "Time of calculation: $RecordTime" >> /afs/ualberta.ca/home/s/o/somos/ECE420/ECE420Lab3/checkOutput
         done
     done
 
