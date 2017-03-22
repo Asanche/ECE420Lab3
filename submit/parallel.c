@@ -85,8 +85,8 @@ int main(int argc, char* argv[])
             }
             
             /*Jordan elimination*/
-            #pragma omp for collapse(2)
             for (int k = size - 1; k > 0; --k) { // We can't prallelize this loop. Order of k operations on Au matters'
+                #pragma omp for schedule(auto)
                 for (int i = k - 1; i >= 0; --i ) {
                     double temp = Au[index[i]][k] / Au[index[k]][k];
                     Au[index[i]][k] -= temp * Au[index[k]][k];
