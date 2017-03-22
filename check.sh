@@ -70,7 +70,7 @@ echo "Evaluating the results..."
     	./$mxgenEX -s $SAMPLE
         echo "SAMPLE $SAMPLE"
         for CORE in ${Cores[@]}; do
-            echo "$CORE threads"
+            echo "$CORE threads" >> ./checkOutput
             #BestTime=10000000;
             RecordTime=10000000;
             ATTEMPT=0
@@ -99,7 +99,7 @@ echo "Evaluating the results..."
                 fi
             done
             # record the result
-		echo "Time of calculation: $RecordTime"
+		echo "Time of calculation: $RecordTime" >> ./checkOutput
         done
     done
 
